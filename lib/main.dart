@@ -34,14 +34,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Modal modal = new Modal();
   String newTodo = '';
 
-  @override
-  void initState() {
-    for (var i = 0; i <= 10; i++) {
-      _todos.add(Todo(i, 'Todo item $i', false));
-    }
-    super.initState();
-  }
-
   void _addTodo() {
     setState(() {
       _todos.insert(0, Todo(_todos.length, newTodo, false));
@@ -61,6 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  //for row
   Widget _row(Todo todo, int index) {
     return Card(
       child: Padding(
@@ -101,6 +94,69 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  //for list
+  Widget _listBuilder() {
+    return ListView.builder(
+      itemBuilder: (context, index) {
+        var todoIn = _todos[index];
+        return GestureDetector(
+          onLongPress: () {
+            modal.mainBottomSheet(context, 'Edit Todo', _onChange, () {
+              _update(index);
+            }, todoIn.todo);
+          },
+          child: Dismissible(
+            direction: DismissDirection.endToStart,
+            background: Container(
+              alignment: AlignmentDirectional.centerEnd,
+              color: Colors.red,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
+                child: Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            onDismissed: (direction) {
+              setState(() {
+                _todos.removeAt(index);
+              });
+            },
+            key: Key(todoIn.todo),
+            child: _row(todoIn, index),
+          ),
+        );
+      },
+      itemCount: _todos.length,
+    );
+  }
+
+  //empty state
+  Widget _empty() {
+    return Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Icon(
+            Icons.insert_emoticon,
+            size: 80.0,
+            color: Colors.grey,
+          ),
+          Text(
+            'Yeay, There is no task for today',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              color: Colors.grey,
+              fontSize: 24.0,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,40 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: ListView.builder(
-        itemBuilder: (context, index) {
-          var todoIn = _todos[index];
-          return GestureDetector(
-            onLongPress: () {
-              modal.mainBottomSheet(context, 'Edit Todo', _onChange, () {
-                _update(index);
-              }, todoIn.todo);
-            },
-            child: Dismissible(
-              direction: DismissDirection.endToStart,
-              background: Container(
-                alignment: AlignmentDirectional.centerEnd,
-                color: Colors.red,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(0.0, 0.0, 10.0, 0.0),
-                  child: Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              onDismissed: (direction) {
-                setState(() {
-                  _todos.removeAt(index);
-                });
-              },
-              key: Key(todoIn.todo),
-              child: _row(todoIn, index),
-            ),
-          );
-        },
-        itemCount: _todos.length,
-      ),
+      body: _todos.length > 0 ? _listBuilder() : _empty(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           modal.mainBottomSheet(context, 'Add Todo', _onChange, _addTodo);
